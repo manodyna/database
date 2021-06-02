@@ -32,7 +32,8 @@ static int by_date(pdb_t *p1, pdb_t *p2);
 /* main */
 int main (int argc, char **argv) {
     char buf[100];
-    const char *commands[]={"-c", "-p", "-t", "-d", "-a", NULL};
+    const char *commands[]={"-c", "-p", "-t", "-d", "-a", NULL}; //IDK if this is used anywhere else
+    char cmd;
     db_t db;
     db.next=NULL;
     pdb_t dblist;
@@ -49,9 +50,10 @@ usage:  printf ("Usage: %s [commands]\n"
         fclose (f);
         return 0;
     }
-    for (i=0;commands[i]&&strcmp(argv[1],commands[i]);i++);
-    switch (i) {
-        case CREATE:
+    cmd=argv[1][1];
+    for (i=0;commands[i]&&strcmp(argv[1],commands[i]);i++); //Can this be removed?
+    switch (cmd) {
+        case 'c':
         printf("-c  Create a new entry.\n");
         printf("Title           :");if((scanf(" %25[^\n]",db.title     ))<0)break;
         printf("Author Firstname:");if((scanf(" %25[^\n]",db.first_name))<0)break;
@@ -61,26 +63,26 @@ usage:  printf ("Usage: %s [commands]\n"
         db.date=str2time (buf);
         dao (CREATE,f,&db,NULL);
         break;
-        case PRINT:
+        case 'p':
         printf ("-p  Print the latest entry.\n");
         while (!feof(f)) dao (READLINE,f,&db,NULL);
         dao (PRINT,f,&db,NULL);
         break;
-        case TITLE:
+        case 't':
         printf ("-t  Print all entries sorted by title.\n");
         dblist = dao (READ,f,&db,NULL);
         dblist = dao (SORT,f,dblist,by_title);
         dao (PRINT,f,dblist,NULL);
         dao (DESTROY,f,dblist,NULL);
         break;
-        case DATE:
+        case 'd':
         printf ("-d  Print all entries sorted by date.\n");
         dblist = dao (READ,f,&db,NULL);
         dblist = dao (SORT,f,dblist,(int (*)(const void *,const  void *)) by_date);
         dao (PRINT,f,dblist,NULL);
         dao (DESTROY,f,dblist,NULL);
         break;
-        case AUTH:
+        case 'a':
         printf ("-a  Print all entries sorted by author.\n");
         dblist = dao (READ,f,&db,NULL);
         dblist = dao (SORT,f,dblist,by_last_name);
