@@ -1,16 +1,15 @@
-// including the header files
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h>
-#include <stdbool.h> 
+#include <stdbool.h>
 #include <time.h>
-
+#define debug 0
 // defining the time functionality
-#define _XOPEN_SOURCE 
+#define _XOPEN_SOURCE
 #define __USE_XOPEN
 
 // defining database functionalities
-#define DB "database.csv" 
+#define DB "database.csv"
 // defining the readable and unreadable queries
 #define TRY(a)  if (!(a)) {perror(#a);exit(1);}
 #define TRY2(a) if((a)<0) {perror(#a);exit(1);}
@@ -56,10 +55,13 @@ sort_by(type);
 static int by_date(pdb_t *p1, pdb_t *p2);
 
 // main method
-int main(){
-    char buf[100];   
+int main(int argc,char** argv){
+    char buf[100];
+    #if debug
+    printf("%s\n",argv[1]);
+    #endif
     // defining the database commands
-    const char *commands[] = {"-a", "-d", "-s", "-m", "-t" , "-u", "-f", NULL}; 
+    const char *commands[] = {"-a", "-d", "-s", "-m", "-t" , "-u", "-f", NULL};
     // setting up the db and its locations
     // line 45
     db_t db;
@@ -93,9 +95,9 @@ int main(){
             printf("Type           :");if((scanf(" %s[^\n]",db.type))<0)break;
             printf("Manufacturer   :");if((scanf(" %s[^\n]",db.manufacturer ))<0)break;
             // printf("Date of expiry :");if((scanf(" %s[^\n]",buf          ))<0)break;
-            printf("Is prescription:");if((scanf(" %s[^\n]",db.isPrescription))<0)break;
-            printf("Price          :");if((scanf(" %f[^\n]",db.price))<0)break;
-            printf("Quantity       :");if((scanf(" %d[^\n]",db.quantity))<0)break;
+            printf("Is prescription(1/0):");if((scanf(" %d[^\n]",&db.isPrescription))<0)break;
+            printf("Price          :");if((scanf(" %f[^\n]",&db.price))<0)break;
+            printf("Quantity       :");if((scanf(" %d[^\n]",&db.quantity))<0)break;
             // db.dateOfExpiry=strftime (buf);
             dao (ADD,f,&db,NULL);
             break;
@@ -131,15 +133,15 @@ int main(){
             break;
 
         default: {
-            printf ("Unknown command: %s.\n",strlen(argv[1])<10?argv[1]:"");
+            printf ("Unknown command: %s.\n",(strlen(argv[1])<10?argv[1]:NULL));
             goto usage;
-        }   
+        }
     }
-    
+
     fclose (f);
     return 0;
 
-}  
+}
 
 static pdb_t dao (int cmd, FILE *f, pdb_t in_db, sort sortby) {
 pdb_t *pdb=NULL,rec=NULL,hd=NULL;
@@ -151,8 +153,9 @@ pdb_t *pdb=NULL,rec=NULL,hd=NULL;
             fprintf (f,"\"%s\",",in_db->type);
             fprintf (f,"\"%s\",",in_db->manufacturer);
             // fprintf (f,"\"%s\",",time2str(&in_db->dateOfExpiry));
-            fprintf (f,"\"%f\" \n",in_db->price);
-            fprintf (f,"\"%d\" \n",in_db->quantity);
+            fprintf(f, "\"%d\",", in_db->isPrescription);
+            fprintf (f,"\"%f\",",in_db->price);
+            fprintf (f,"\"%d\"\n",in_db->quantity);
             break;
 
         case SELECT:
@@ -163,7 +166,7 @@ pdb_t *pdb=NULL,rec=NULL,hd=NULL;
                 // printf ("Date of expiry : %s\n",     time2str(&in_db->dateOfExpiry));
                 printf ("Price          : %f\n",     in_db->price);
                 printf ("Quantity       : %s\n",     in_db->quantity);
-                
+
                 if (!((i+1)%3)) {
                     printf ("Press Enter to continue.\n");
                     ret = scanf ("%*[^\n]");
@@ -218,13 +221,13 @@ pdb_t *pdb=NULL,rec=NULL,hd=NULL;
             FREE (pdb);
             pdb=NULL;
             break;
-            
+
         case DESTROY: {
             while ((rec=in_db)) {
                 in_db=in_db->next;
                 FREE (rec);
-            }   
-        }   
+            }
+        }
     }
     return rec;
 }
@@ -254,5 +257,5 @@ static int by_date (pdb_t *p1, pdb_t *p2) {
         return -1;
     }
     else return ((*p1)->dateOfExpiry > (*p2)->dateOfExpiry);
-}    
+}
 // build succesful
